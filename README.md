@@ -13,7 +13,7 @@ Sistema de agendamento para barbearias e salões.
 - Autenticação(JWT) []
 - Frontend(A definir) []
 
-## Tec
+## Tecnologias
 
 - Java 21 + Spring Boot 4
 - Spring Data JPA / Spring Security
