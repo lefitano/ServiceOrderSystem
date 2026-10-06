@@ -30,7 +30,7 @@ public class UsuarioService {
     }
 
     public UsuarioResponse buscarPorId(Integer id){
-        Usuario usuario = usuarioRepository.findById(id)
+        Usuario usuario = usuarioRepository.findById(id) 
         .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado com id : " + id));
         return UsuarioMapper.toResponse(usuario);
     }
