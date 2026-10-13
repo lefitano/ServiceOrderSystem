@@ -1,0 +1,8 @@
+package com.barberFlow.barberFlow.dto;
+
+
+
+
+public record ProfissionalResponse(Integer id, String nome, String email, String especialidade, String bio ) {
+    
+}
