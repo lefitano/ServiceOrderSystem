@@ -144,10 +144,13 @@ public class AgendamentoService {
 
     @Transactional
     public void deletar(Integer id) {
-        if (!agendamentoRepository.existsById(id)) {
-            throw new RecursoNaoEncontradoException("Agendamento não encontrado com id: " + id);
+        Agendamento agendamento = agendamentoRepository.findById(id)
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Agendamento não encontrado com id: " + id));
+
+        if (agendamento.getStatusAgendamento() == StatusAgendamento.CONCLUIDO) {
+            throw new OperacaoInvalidaException("Agendamento concluído não pode ser excluído, para preservar o histórico e a avaliação");
         }
 
-        agendamentoRepository.deleteById(id);
+        agendamentoRepository.delete(agendamento);
     }
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.barberFlow.barberFlow.dto.AvaliacaoRequest;
@@ -20,6 +21,7 @@ public class AvaliacaoController {
 
     private final AvaliacaoService avaliacaoService;
 
+    @PreAuthorize("@acesso.ehDonoDoAgendamento(#request.agendamentoId())")
     @PostMapping
     public ResponseEntity<AvaliacaoResponse> criar(@Valid @RequestBody AvaliacaoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(avaliacaoService.criar(request));
@@ -35,6 +37,7 @@ public class AvaliacaoController {
         return ResponseEntity.ok(avaliacaoService.listarTodos());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Integer id) {
         avaliacaoService.deletar(id);
