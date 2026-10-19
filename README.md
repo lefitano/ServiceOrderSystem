@@ -7,10 +7,10 @@ Sistema de agendamento para barbearias e salões.
 
 - Modelagem do Banco de Dados (MySQL) [x]
 - Implementação de Entidades JPA(models) [x]
-- Repositories []
-- Regras de negócios(services) []
-- Endpoints REST(controllers) []
-- Autenticação(JWT) []
+- Repositories [X]
+- Regras de negócios(services) [X]
+- Endpoints REST(controllers) [X]
+- Autenticação(JWT) [X]
 - Frontend(A definir) []
 
 ## Tecnologias
