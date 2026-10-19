@@ -3,17 +3,21 @@ package com.barberFlow.barberFlow.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import com.barberFlow.barberFlow.model.Agendamento;
 import com.barberFlow.barberFlow.model.Cliente;
+import com.barberFlow.barberFlow.model.DiaSemana;
+import com.barberFlow.barberFlow.model.HorarioDeTrabalho;
 import com.barberFlow.barberFlow.model.Profissional;
 import com.barberFlow.barberFlow.model.Servico;
 import com.barberFlow.barberFlow.model.StatusAgendamento;
 import com.barberFlow.barberFlow.repository.AgendamentoRepository;
 import com.barberFlow.barberFlow.repository.ClienteRepository;
+import com.barberFlow.barberFlow.repository.HorarioDeTrabalhoRepository;
 import com.barberFlow.barberFlow.repository.ProfissionalRepository;
 import com.barberFlow.barberFlow.repository.ServicoRepository;
 import com.barberFlow.barberFlow.mapper.AgendamentoMapper;
@@ -30,13 +34,14 @@ public class AgendamentoService {
     private final ClienteRepository clienteRepository;
     private final ProfissionalRepository profissionalRepository;
     private final ServicoRepository servicoRepository;
+    private final HorarioDeTrabalhoRepository horarioDeTrabalhoRepository;
 
     @Transactional
     public AgendamentoResponse criar(AgendamentoRequest request) {
         Cliente cliente = clienteRepository.findById(request.clienteId())
             .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente não encontrado com id: " + request.clienteId()));
 
-        Profissional profissional = profissionalRepository.findById(request.profissionalId())
+        Profissional profissional = profissionalRepository.findByIdParaAgendamento(request.profissionalId())
             .orElseThrow(() -> new RecursoNaoEncontradoException("Profissional não encontrado com id: " + request.profissionalId()));
 
         Servico servico = servicoRepository.findById(request.servicoId())
@@ -48,6 +53,8 @@ public class AgendamentoService {
 
         LocalDateTime dataHoraFim = request.dataHoraInicio().plusMinutes(servico.getDuracaoMinutos());
 
+        validarExpediente(profissional, request.dataHoraInicio(), dataHoraFim);
+
         List<Agendamento> conflitos = agendamentoRepository.buscarConflitos(
             profissional.getId(), request.dataHoraInicio(), dataHoraFim);
 
@@ -55,10 +62,41 @@ public class AgendamentoService {
             throw new OperacaoInvalidaException("Profissional já possui agendamento nesse intervalo de horário");
         }
 
+        if (!agendamentoRepository.buscarConflitosCliente(cliente.getId(), request.dataHoraInicio(), dataHoraFim).isEmpty()) {
+            throw new OperacaoInvalidaException("Cliente já possui agendamento nesse intervalo de horário");
+        }
+
         Agendamento agendamento = AgendamentoMapper.toEntity(request, cliente, profissional, servico, dataHoraFim);
         Agendamento agendamentoSalvo = agendamentoRepository.save(agendamento);
 
         return AgendamentoMapper.toResponse(agendamentoSalvo);
+    }
+
+    private void validarExpediente(Profissional profissional, LocalDateTime inicio, LocalDateTime fim) {
+        if (!inicio.toLocalDate().equals(fim.toLocalDate())) {
+            throw new OperacaoInvalidaException("O agendamento não pode atravessar a meia-noite");
+        }
+
+        HorarioDeTrabalho horario = horarioDeTrabalhoRepository
+            .findByProfissionalIdAndDiaSemana(profissional.getId(), converterDia(inicio.getDayOfWeek()))
+            .orElseThrow(() -> new OperacaoInvalidaException("Profissional não trabalha nesse dia da semana"));
+
+        if (inicio.toLocalTime().isBefore(horario.getHoraInicio()) || fim.toLocalTime().isAfter(horario.getHoraFim())) {
+            throw new OperacaoInvalidaException("Horário fora do expediente do profissional ("
+                + horario.getHoraInicio() + " às " + horario.getHoraFim() + ")");
+        }
+    }
+
+    private DiaSemana converterDia(DayOfWeek dia) {
+        return switch (dia) {
+            case MONDAY -> DiaSemana.SEGUNDA;
+            case TUESDAY -> DiaSemana.TERCA;
+            case WEDNESDAY -> DiaSemana.QUARTA;
+            case THURSDAY -> DiaSemana.QUINTA;
+            case FRIDAY -> DiaSemana.SEXTA;
+            case SATURDAY -> DiaSemana.SABADO;
+            case SUNDAY -> DiaSemana.DOMINGO;
+        };
     }
 
     public AgendamentoResponse buscarPorId(Integer id) {
