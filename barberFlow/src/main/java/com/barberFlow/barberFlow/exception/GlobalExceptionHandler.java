@@ -9,6 +9,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.barberFlow.barberFlow.dto.ErroResponse;
 
@@ -40,6 +41,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResponse> handleCorpoInvalido(HttpMessageNotReadableException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(new ErroResponse(HttpStatus.BAD_REQUEST.value(), "Corpo da requisição inválido ou mal formatado"));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErroResponse> handleTipoInvalido(MethodArgumentTypeMismatchException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(new ErroResponse(HttpStatus.BAD_REQUEST.value(), "Valor inválido para o parâmetro '" + ex.getName() + "'"));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

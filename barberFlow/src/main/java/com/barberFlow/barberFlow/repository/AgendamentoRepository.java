@@ -26,4 +26,17 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Intege
         @Param("fim") LocalDateTime fim
     );
 
+    @Query ("""
+        SELECT a FROM Agendamento a
+        WHERE a.cliente.id = :clienteId
+        AND a.dataHoraInicio < :fim
+        AND a.dataHoraFim > :inicio
+        AND a.statusAgendamento <> com.barberFlow.barberFlow.model.StatusAgendamento.CANCELADO
+    """)
+    List<Agendamento> buscarConflitosCliente(
+        @Param("clienteId") Integer clienteId,
+        @Param("inicio") LocalDateTime inicio,
+        @Param("fim") LocalDateTime fim
+    );
+
 }
