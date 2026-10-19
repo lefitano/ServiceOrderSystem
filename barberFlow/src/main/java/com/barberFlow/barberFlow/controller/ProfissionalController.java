@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.barberFlow.barberFlow.dto.AtualizarProfissionalRequest;
@@ -21,6 +22,7 @@ public class ProfissionalController {
 
     private final ProfissionalService profissionalService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ProfissionalResponse> criar(@Valid @RequestBody ProfissionalRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(profissionalService.criar(request));
@@ -36,11 +38,13 @@ public class ProfissionalController {
         return ResponseEntity.ok(profissionalService.listarTodos());
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @acesso.ehProfissional(#id)")
     @PutMapping("/{id}")
     public ResponseEntity<ProfissionalResponse> atualizar(@PathVariable Integer id, @Valid @RequestBody AtualizarProfissionalRequest request) {
         return ResponseEntity.ok(profissionalService.atualizar(id, request));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Integer id) {
         profissionalService.deletar(id);

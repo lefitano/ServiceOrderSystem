@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.barberFlow.barberFlow.repository.UsuarioRepository;
 import com.barberFlow.barberFlow.mapper.UsuarioMapper;
+import com.barberFlow.barberFlow.model.Funcao;
 import com.barberFlow.barberFlow.model.Usuario;
 import com.barberFlow.barberFlow.dto.UsuarioRequest;
 import com.barberFlow.barberFlow.dto.UsuarioResponse;
@@ -23,6 +24,9 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioResponse criar(UsuarioRequest request){
+        if (request.funcao() == Funcao.ADMIN) {
+            throw new OperacaoInvalidaException("Usuário ADMIN não pode ser criado pela API");
+        }
         if (usuarioRepository.existsByEmail(request.email())) {
             throw new OperacaoInvalidaException("Já existe um usuário com o email: " + request.email());
         }

@@ -22,6 +22,18 @@ public class GlobalExceptionHandler {
             .body(new ErroResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
     }
 
+    @ExceptionHandler(CredenciaisInvalidasException.class)
+    public ResponseEntity<ErroResponse> handleCredenciais(CredenciaisInvalidasException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(new ErroResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(TentativasExcedidasException.class)
+    public ResponseEntity<ErroResponse> handleTentativas(TentativasExcedidasException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+            .body(new ErroResponse(HttpStatus.TOO_MANY_REQUESTS.value(), ex.getMessage()));
+    }
+
     @ExceptionHandler(OperacaoInvalidaException.class)
     public ResponseEntity<ErroResponse> handleOperacaoInvalida(OperacaoInvalidaException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
